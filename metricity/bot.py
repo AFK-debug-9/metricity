@@ -157,7 +157,8 @@ async def on_guild_available(guild: Guild) -> None:
         users.append({
             "id": str(user.id),
             "name": user.name,
-            "avatar_hash": user.avatar,
+            "avatar_hash": getattr(user.avatar, "key", None),
+            "guild_avatar_hash": getattr(user.guild_avatar, "key", None),
             "joined_at": user.joined_at,
             "created_at": user.created_at,
             "is_staff": BotConfig.staff_role_id in [role.id for role in user.roles],
