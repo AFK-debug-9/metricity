@@ -354,6 +354,9 @@ async def on_message(message: DiscordMessage) -> None:
     if message.guild.id != BotConfig.guild_id:
         return
 
+    if message.type == MessageType.thread_created:
+        return
+
     await sync_process_complete.wait()
     await channel_sync_in_progress.wait()
 
@@ -365,9 +368,20 @@ async def on_message(message: DiscordMessage) -> None:
     if cat_id in BotConfig.ignore_categories:
         return
 
+    channel_id = message.channel.id
+    thread_id = None
+
+    if isinstance(message.channel, ThreadChannel):
+        thread = message.channel
+        channel_id = thread.parent_id
+        thread_id = thread.id
+        if not await Thread.get(str(thread.id)):
+            await insert_thread(thread)
+
     await Message.create(
         id=str(message.id),
-        channel_id=str(message.channel.id),
+        channel_id=str(channel_id),
+        thread_id=str(thread_id),
         author_id=str(message.author.id),
         created_at=message.created_at
     )
